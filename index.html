@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Old House Adventure 👻</title>
+
+<style>
+body {
+  font-family: 'Comic Sans MS', cursive;
+  text-align: center;
+  background: linear-gradient(#1a1a2e, #16213e);
+  color: white;
+}
+
+h1 {
+  animation: float 2s infinite alternate;
+}
+
+@keyframes float {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10px); }
+}
+
+.card {
+  background: #0f3460;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 20px;
+  width: 300px;
+  box-shadow: 0 0 20px #00f2ff;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.listen { background: #00adb5; }
+.speak { background: #ff5722; }
+.next { background: #4caf50; }
+.ghost { background: purple; }
+
+.word-correct { color: #00ffcc; font-weight: bold; }
+.word-wrong { color: red; text-decoration: line-through; }
+
+.progress {
+  width: 80%;
+  margin: auto;
+  background: #444;
+  border-radius: 10px;
+}
+
+.bar {
+  height: 15px;
+  background: #00ffcc;
+  width: 0%;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏚️ Old House Adventure 👻</h1>
+
+<div class="card">
+  <p id="sentence">Click Start</p>
+
+  <button class="listen" onclick="listen()">🔊 Listen</button>
+  <button class="speak" onclick="speak()">🎤 Speak</button>
+  <button class="ghost" onclick="ghostMode()">👻 Ghost Voice</button>
+  <br>
+  <button class="next" onclick="nextSentence()">Next ➡️</button>
+</div>
+
+<div class="card">
+  <p id="feedback"></p>
+  <p id="score">Score: 0</p>
+  <p id="transcript"></p>
+
+  <div class="progress">
+    <div class="bar" id="progressBar"></div>
+  </div>
+</div>
+
+<script>
+// 🎯 Sentences (MORE!!)
+const sentences = [
+  "This is the kitchen",
+  "I see a ghost",
+  "Open the old door",
+  "Go up the stairs",
+  "The room is dark",
+  "I see a chair",
+  "Close the window",
+  "The house is scary",
+  "Walk to the bedroom",
+  "Look at the table"
+];
+
+let index = 0;
+let score = 0;
+
+// 🔊 Listen (Normal)
+function listen() {
+  let msg = new SpeechSynthesisUtterance(sentences[index]);
+  speechSynthesis.speak(msg);
+}
+
+// 👻 Ghost Voice
+function ghostMode() {
+  let msg = new SpeechSynthesisUtterance(sentences[index]);
+  msg.rate = 0.6;
+  msg.pitch = 0.5;
+  speechSynthesis.speak(msg);
+}
+
+// 🎤 Speech Recognition
+let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+if (recognition) {
+  recognition.onresult = function(event) {
+    let spoken = event.results[0][0].transcript;
+    checkAnswer(spoken);
+  };
+} else {
+  alert("Use Google Chrome!");
+}
+
+function speak() {
+  if (recognition) recognition.start();
+}
+
+// 📊 Check Answer
+function checkAnswer(spoken) {
+  let target = sentences[index].toLowerCase().split(" ");
+  let user = spoken.toLowerCase().split(" ");
+
+  let correct = 0;
+  let html = "";
+
+  target.forEach(word => {
+    if (user.includes(word)) {
+      correct++;
+      html += `<span class="word-correct">${word}</span> `;
+    } else {
+      html += `<span class="word-wrong">${word}</span> `;
+    }
+  });
+
+  let percent = correct / target.length;
+
+  document.getElementById("transcript").innerHTML =
+    `You said: "${spoken}"<br>${html}`;
+
+  if (percent > 0.6) {
+    score++;
+    document.getElementById("feedback").innerText = "✅ Great job!";
+  } else {
+    document.getElementById("feedback").innerText = "🔁 Try again!";
+  }
+
+  document.getElementById("score").innerText = "Score: " + score;
+}
+
+// ➡️ Next
+function nextSentence() {
+  index++;
+  if (index < sentences.length) {
+    document.getElementById("sentence").innerText = sentences[index];
+    updateProgress();
+  } else {
+    document.getElementById("sentence").innerText = "🎉 You escaped the house!";
+  }
+}
+
+// 📊 Progress bar
+function updateProgress() {
+  let percent = (index / sentences.length) * 100;
+  document.getElementById("progressBar").style.width = percent + "%";
+}
+
+// Start first
+document.getElementById("sentence").innerText = sentences[0];
+</script>
+
+</body>
+</html>
